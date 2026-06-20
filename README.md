@@ -16,101 +16,139 @@
 </p>
 
 <p align="center">
-  <strong>WHOIS &middot; DNS &middot; Subdomains &middot; Breaches &middot; Code &middot; Network</strong>
+  <strong>WHOIS &middot; DNS &middot; Subdomains &middot; Breaches &middot; Socials &middot; Code &middot; Network &middot; Shodan</strong>
 </p>
 
 ---
 
-You know the drill. Five different terminal tabs open. Running `whois` in one, `dig` in another, checking `crt.sh` in the browser, and hunting for secrets on GitHub. 
+You know the drill. Five different terminal tabs open. Running `whois` in one, `dig` in another, checking `crt.sh` in the browser, searching for breaches on HaveIBeenPwned, and hunting for secrets on GitHub. 
 
-IRIS puts it all into one prompt.
+**IRIS puts it all into one prompt.**
 
-## Before / after
+Designed for modern penetration testers, bug bounty hunters, and threat intelligence analysts, IRIS is a high-performance CLI tool that unifies disparate OSINT data streams into beautifully formatted, locally cached, and highly exportable intelligence.
 
-You want to profile a target domain. You manually script together five tools, figure out how to parse their XML/JSON, store the output in ten different text files, and then try to manually correlate the IP addresses to the mail servers.
+## 🚀 Features & Capabilities
 
-With IRIS:
+IRIS automatically detects the type of target you provide (Domain, IP, or Email) and executes a highly specialized concurrent intelligence pipeline.
 
+### 🌐 Domains
+*   **WHOIS:** Registrar, Creation, Expiry, Status, Name Servers.
+*   **DNS:** A, MX, NS, TXT, SPF, and DMARC record parsing.
+*   **Subdomains:** Passive subdomain enumeration via `crt.sh`.
+*   **SSL:** Live certificate extraction (Issuer, Expiry, Subject Alternative Names).
+
+### 🖥️ Network (IPs)
+*   **Geolocation & ASN:** Live IP tracking (City, Country, ISP, Organization).
+*   **Shodan Intelligence:** Open ports, service banners, vulnerabilities, and hostnames.
+
+### 📧 Emails (The "Ultimate" Collector)
+*   **Breach Ledger (HIBP):** Checks if the email was involved in public data dumps.
+*   **Account Discovery (Holehe):** Asynchronously checks password-reset endpoints across **120+ social media and web services** (Twitter, GitHub, Imgur, etc.) to reveal where the target has registered accounts.
+*   **Professional Profiling (Hunter.io):** Extracts First Name, Last Name, Job Title, Company, and LinkedIn/Twitter profiles.
+*   **Gravatar & GitHub Cross-referencing:** Extracts display names, associated wallets, and active code commits.
+*   **SMTP Validation:** Validates MX records to ensure the address is capable of receiving mail.
+
+### 💻 Code
+*   **GitHub Scanning:** The `/code` command instantly searches GitHub for repositories, sensitive files, or leaked secrets associated with your target.
+
+---
+
+## ⚡ Installation
+
+We've made IRIS incredibly easy to install. It packages its own dependencies and injects an executable directly into your PATH.
+
+### Quick Install (Pip)
 ```bash
-iris > example.com
-```
-
-Everything else is done for you. The caching, the correlation, the beautiful neon reporting. One command.
-
-## How it works
-
-Before making you manually verify anything, IRIS runs the target through a multi-tier collection ladder:
-
-```
-1. Is it a domain?  → Pull WHOIS, DNS (A, MX, TXT), Subdomains, and live SSL data.
-2. Is it an email?  → Run SMTP validation and check the Have I Been Pwned ledger.
-3. Is it an IP?     → Ping Geolocation, ASN, ISP tracking, and Shodan for open ports/vulnerabilities.
-4. Code / GitHub?   → Hunt for repository mentions and exposed secrets.
-5. Correlate        → Automatically graph the relationships in a local SQLite cache.
-```
-
-Lazy, but precise: APIs are cached locally. You aren't burning rate limits. Everything is exported exactly how you want it, instantly.
-
-## Install
-
-Clone it and run the setup.
-
-```bash
+# Clone the repository
 git clone https://github.com/malrobust/iris.git
 cd iris
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -e .
+
+# Install system-wide (or in a virtual environment)
+pip install .
 ```
 
-You can configure premium APIs (like Shodan, GitHub, or HaveIBeenPwned) directly inside the CLI:
-```bash
-iris > /config set SHODAN_API_KEY=your_key_here
-```
-No need to mess with `.env` files. IRIS will store your keys securely in `~/.iris/config.json`. If you don't have keys, IRIS gracefully falls back to free scraping and simulations.
-
-## Commands
-
-Drop into the interactive loop:
+### Running IRIS
+Once installed, simply run the tool from anywhere in your terminal:
 ```bash
 iris
 ```
 
-Inside the loop:
+---
 
-| Command | What it does |
-|---------|--------------|
-| `<target>` | Profile a domain, IP, or email (e.g. `example.com`, `admin@example.com`, `1.1.1.1`) |
-| `/code <target>` | Search GitHub for repositories and secrets related to an organization or domain. |
-| `/export` | Cycle through export modes (`none`, `html`, `json`, `csv`). |
-| `/history` | Show recently profiled targets. |
-| `/config set <K>=<V>`| Set an API key securely (e.g. `HIBP_API_KEY=123`). |
-| `/status` | Check which API keys are configured and active. |
-| `clear` | Wipe the console. |
-| `quit` | Exit the matrix. |
+## 🛠️ Usage & Commands
 
-Or use it as a classic single-shot tool for scripting and CI pipelines:
+IRIS operates as a highly responsive, interactive REPL. You drop into the shell once, and it remembers your session state, export preferences, and history.
 
 ```bash
-iris profile example.com --export html
+malrobust@kali:~$ iris
+
+               ▄▄               
+              ████              
+             ██████             
+            ████████            
+           ██████████           
+▄▄▄▄▄▄▄▄▄▄████████████▄▄▄▄▄▄▄▄▄▄
+████████████████████████████████
+▀▀▀▀▀▀▀▀▀██████████████▀▀▀▀▀▀▀▀▀
+              ████              
+             ██████             
+              ████              
+               ▀▀               
+
+› example.com
 ```
 
-## FAQ
+### Interactive Loop Commands
 
-**Does it need API keys?**
-No. It works out of the box with free OSINT sources. You can add keys for premium lookups (Shodan, GitHub, HIBP) directly inside the CLI using the `/config set` command.
-
-**Is it a full-screen TUI?**
-No, it's a CLI that acts like an interactive REPL. It uses `prompt_toolkit` to give you a clean, beautiful chat-like interface without hijacking your entire terminal buffer, allowing you to scroll back naturally.
-
-**Where is the data stored?**
-Everything is automatically cached in a local SQLite database (`iris.db`) to prevent redundant lookups. 
-
-**Why "IRIS"?**
-Because it sees everything.
+| Command | What it does | Example |
+|---------|--------------|---------|
+| `<target>` | Profile a domain, IP, or email instantly. | `example.com`, `admin@example.com`, `1.1.1.1` |
+| `/code <target>` | Search GitHub for repositories and secrets. | `/code example.com` |
+| `/export` | Cycle through export modes (`none`, `html`, `json`, `csv`). | `/export` |
+| `/history` | Show recently profiled targets. | `/history` |
+| `/config set <K>=<V>`| Set an API key securely (Stored in `~/.iris/config.json`). | `/config set SHODAN_API_KEY=xxx` |
+| `/config del <K>`| Delete an API key securely. | `/config del GITHUB_TOKEN` |
+| `/status` | Check which API keys are configured and active. | `/status` |
+| `clear` | Wipe the console. | `clear` |
+| `quit` | Exit the matrix. | `quit` |
 
 ---
 
-## License
+## 🔑 Premium API Integrations
 
-[MIT](LICENSE). The clearest license there is.
+IRIS works incredibly well **out-of-the-box using free scraping and public APIs**. However, if you want "God Mode" intelligence, you can plug in premium API keys.
+
+You never have to mess with `.env` files. Just drop them directly into the IRIS terminal using `/config set`:
+
+```bash
+# Unlock advanced open-port and vulnerability scanning
+iris > /config set SHODAN_API_KEY=your_key_here
+
+# Unlock GitHub code searching
+iris > /config set GITHUB_TOKEN=your_token_here
+
+# Unlock advanced professional email intelligence (Names, LinkedIn, Company)
+iris > /config set HUNTER_API_KEY=your_key_here
+
+# Unlock premium breach lookups
+iris > /config set HIBP_API_KEY=your_key_here
+```
+
+IRIS encrypts and stores these in `~/.iris/config.json` with strict `0600` permissions. If you don't have a key, IRIS gracefully skips that specific check or falls back to a free alternative.
+
+---
+
+## 💾 Local SQLite Caching (Zero-Cost Recon)
+
+Tired of burning through API credits just because you forgot a port number and had to re-scan a target? 
+
+IRIS utilizes a seamless local `SQLite` database (`iris.db`) to cache all intelligence. 
+*   **Lightning Fast:** Repeated lookups return instantly from the disk.
+*   **Cost-Effective:** You only query premium APIs (like Shodan or Hunter) once per target.
+*   **Relationship Ready:** The database architecture is built to automatically correlate links between domains, IPs, and emails for graph generation.
+
+---
+
+## 📜 License
+
+[MIT](LICENSE). The clearest license there is. Build on it, break it, make it better.
