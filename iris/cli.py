@@ -200,7 +200,12 @@ def interactive_shell():
 
             cmd = text.lower()
 
-            if cmd in ["exit", "quit", "/quit"]:
+            # Exit commands — also catches common typos (quite, exot, quet, etc.)
+            _quit_words = ["exit", "quit", "/quit", "q", ":q", "bye"]
+            if cmd in _quit_words or any(
+                __import__("difflib").SequenceMatcher(None, cmd, w).ratio() > 0.80
+                for w in ["quit", "exit"]
+            ):
                 console.print("\n  [dim]Goodbye.[/dim]\n")
                 break
 
