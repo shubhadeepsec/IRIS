@@ -1,13 +1,19 @@
+import asyncio
 import ipaddress
 import socket
 from typing import Dict, Any
 
 from iris.collectors import BaseCollector
+from iris.api_clients.shodan import ShodanClient
 from iris.db import cache
 
 
 class NetworkCollector(BaseCollector):
-    """Collector for network-related intelligence (IPs, Geolocation, ASN)."""
+    """Collector for network-related intelligence (IPs, Geolocation, ASN, Shodan)."""
+
+    def __init__(self):
+        super().__init__()
+        self.shodan_client = ShodanClient()
 
     async def collect(self, target: str) -> Dict[str, Any]:
         """Gather intelligence on an IP target."""
@@ -30,29 +36,42 @@ class NetworkCollector(BaseCollector):
             return self.parse({
                 "target": cached_data["target"],
                 "ip": cached_data["ip_address"],
-                "geo": cached_data["geo"]
+                "geo": cached_data["geo"],
+                "shodan": cached_data.get("shodan", {})
             })
 
-        url = (
+        # Fetch IP-API and Shodan concurrently
+        geo_url = (
             f"http://ip-api.com/json/{ip_address}"
             f"?fields=status,message,country,regionName,city,zip,lat,lon,isp,org,as,reverse,mobile,proxy,hosting"
         )
-        data = await self._fetch(url)
+        
+        loop = asyncio.get_running_loop()
+        results = await asyncio.gather(
+            self._fetch(geo_url),
+            self.shodan_client.get_host(ip_address),
+            return_exceptions=True
+        )
 
-        if not data or data.get("status") != "success":
-            msg = data.get("message", "API query failed") if data else "Network error"
+        geo_data = results[0] if not isinstance(results[0], Exception) else {}
+        shodan_data = results[1] if not isinstance(results[1], Exception) else {}
+
+        if not geo_data or geo_data.get("status") != "success":
+            msg = geo_data.get("message", "API query failed") if geo_data else "Network error"
             return self.parse({"target": target, "ip": ip_address, "error": msg})
 
         raw_data = {
             "target":  target,
             "ip":      ip_address,
-            "geo":     data,
+            "geo":     geo_data,
+            "shodan":  shodan_data
         }
 
         cache.save_ip(
             target=target,
             ip_address=ip_address,
-            geo_data=data
+            geo_data=geo_data,
+            shodan_data=shodan_data
         )
 
         return self.parse(raw_data)
@@ -63,6 +82,8 @@ class NetworkCollector(BaseCollector):
             return {"Target": raw.get("target"), "Error": raw.get("error"), "_raw": raw}
 
         geo = raw.get("geo", {})
+        shodan = raw.get("shodan", {})
+        
         flags = []
         if geo.get("proxy"):
             flags.append("Proxy")
@@ -82,5 +103,20 @@ class NetworkCollector(BaseCollector):
             "ASN":          geo.get("as", "Unknown"),
             "Flags":        ", ".join(flags) if flags else "None",
         }
+        
+        if shodan and "error" not in shodan:
+            ports = shodan.get("ports", [])
+            parsed["Open Ports"] = ", ".join([str(p) for p in ports]) if ports else "None"
+            
+            vulns = shodan.get("vulns", [])
+            parsed["Vulnerabilities"] = ", ".join(vulns) if vulns else "None"
+            
+            tags = shodan.get("tags", [])
+            if tags:
+                parsed["Shodan Tags"] = ", ".join(tags)
+
+        elif shodan and "error" in shodan:
+            parsed["Shodan"] = shodan["error"]
+
         parsed["_raw"] = raw
         return parsed

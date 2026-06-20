@@ -19,6 +19,7 @@ from iris.collectors.network import NetworkCollector
 from iris.collectors.code import CodeCollector
 from iris import exporters
 from iris.db import cache
+from iris import config
 
 __version__ = "0.1.0"
 
@@ -241,6 +242,8 @@ def interactive_shell():
                 help_table.add_column("Description", style="white")
                 help_table.add_row("  <target>", "Profile a domain, IP, or email")
                 help_table.add_row("  /code <target>", "Search GitHub for a domain/org name")
+                help_table.add_row("  /config set <KEY>=<VAL>", "Set an API key (e.g. HIBP_API_KEY=123)")
+                help_table.add_row("  /status", "Check configured API keys")
                 help_table.add_row("  /export", "Cycle export mode: none → html → json → csv")
                 help_table.add_row("  /history", "Show recently profiled targets")
                 help_table.add_row("  clear", "Clear the terminal")
@@ -259,6 +262,27 @@ def interactive_shell():
 
             if cmd == "/history":
                 _print_history()
+                continue
+
+            if cmd == "/status":
+                keys = config.load_config()
+                if not keys:
+                    console.print("\n  [dim]No API keys configured.[/dim]\n")
+                else:
+                    console.print("\n  [bold #a855f7]Configured API Keys:[/bold #a855f7]")
+                    for k in keys:
+                        console.print(f"  ● [bold cyan]{k}[/bold cyan] = [dim]...{keys[k][-4:]}[/dim]")
+                console.print()
+                continue
+
+            if text.startswith("/config set "):
+                parts = text[12:].split("=", 1)
+                if len(parts) == 2:
+                    k, v = parts[0].strip().upper(), parts[1].strip()
+                    config.set_api_key(k, v)
+                    console.print(f"\n  [dim]✓ Saved {k}[/dim]\n")
+                else:
+                    console.print("\n  [red]✗ Usage: /config set KEY=VALUE[/red]\n")
                 continue
 
             if cmd.startswith("/code "):

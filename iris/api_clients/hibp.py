@@ -3,11 +3,13 @@ import hashlib
 import aiohttp
 from typing import List, Dict, Any, Optional
 
+from iris import config
+
 class HIBPClient:
     """Client for checking email breaches via Have I Been Pwned."""
     
     def __init__(self, api_key: Optional[str] = None):
-        self.api_key = api_key or os.environ.get("HIBP_API_KEY")
+        self.api_key = api_key or config.get_api_key("HIBP_API_KEY")
         self.headers = {
             "User-Agent": "IRIS-OSINT",
             "hibp-api-key": self.api_key or ""

@@ -2,11 +2,13 @@ import os
 import aiohttp
 from typing import List, Dict, Any, Optional
 
+from iris import config
+
 class GitHubClient:
     """Client for querying the GitHub API for repositories, code, and user details."""
     
     def __init__(self, token: Optional[str] = None):
-        self.token = token or os.environ.get("GITHUB_TOKEN")
+        self.token = token or config.get_api_key("GITHUB_TOKEN")
         self.headers = {
             "Accept": "application/vnd.github.v3+json",
             "User-Agent": "IRIS-OSINT"

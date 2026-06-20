@@ -139,6 +139,7 @@ def get_cached_ip(target: str, max_age_hours: int = 24) -> Optional[Dict[str, An
                 "target": record.target,
                 "ip_address": record.ip_address,
                 "geo": record.geo_data,
+                "shodan": getattr(record, "shodan_data", {}),
                 "created_at": record.created_at,
                 "updated_at": record.updated_at
             }
@@ -149,7 +150,8 @@ def get_cached_ip(target: str, max_age_hours: int = 24) -> Optional[Dict[str, An
 def save_ip(
     target: str,
     ip_address: str,
-    geo_data: Dict[str, Any]
+    geo_data: Dict[str, Any],
+    shodan_data: Optional[Dict[str, Any]] = None
 ) -> int:
     """Save or update an IP record in cache."""
     session = get_session()
@@ -162,6 +164,8 @@ def save_ip(
         
         record.ip_address = ip_address
         record.geo_data = geo_data
+        if shodan_data is not None:
+            record.shodan_data = shodan_data
         record.updated_at = datetime.utcnow()
         session.commit()
         session.refresh(record)
