@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=61.0.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "iris"
+version = "0.1.0"
+description = "IRIS — Unified OSINT Intelligence Platform"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "typer>=0.12.0",
+    "textual>=0.30.0",
+    "rich>=13.7.0",
+    "requests>=2.31.0",
+    "dnspython>=2.4.0",
+    "python-whois>=0.9.0",
+    "sqlalchemy>=2.0",
+    "aiohttp>=3.9.0",
+    "questionary>=2.0.0",
+    "PyYAML>=6.0",
+]
+
+[project.scripts]
+iris = "iris.cli:app"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["iris*"]
