@@ -75,20 +75,6 @@ iris
 
 ---
 
-## 🎥 Demo Video
-
-Watch IRIS in action! See how to instantly profile domains, discover breaches, and hunt for accounts across 120+ platforms:
-
-> **[View Demo Video](link-to-your-demo-video)** *(Replace with your actual demo video link)*
-
-Or check out these quick examples:
-- **Domain Intelligence:** `iris > example.com`
-- **Email Profiling:** `iris > admin@example.com`
-- **IP Geolocation:** `iris > 1.1.1.1`
-- **Username Hunt:** `iris > /sherlock admin123`
-
----
-
 ## 🛠️ Usage & Commands
 
 IRIS operates as a highly responsive, interactive REPL. You drop into the shell once, and it remembers your session state, export preferences, and history.
